@@ -28,11 +28,17 @@
 <p>I will try to create an assembler for ATmega/ATxmega self programing like old Personal Computers like ZX Spectrum and others like it.</p>
 <p>There is an emulator developed at the same time for faster development and debugging of the editor/compiler code.</p>
 <p>The emulator is done with Qt community edition.</p>
+<h2 id="description-">Description:</h2>
+<p>Every project will be placed in it's own directory including one or multiple project files "*.prj" that contain the relative paths of the dependency files that will be available for editing using cursor saving, the "*.prj" file need to have a self include line in order to be available for editing this way the "*.prj" file can have definition directives in order to be able to have multiple project configurations with the same source files.</p>
+<p>Only the imported files from project file will be available for editing from file editor with cursor saving, the rest will be edited thru a open file dialog choosing from all imported files from last compilation.</p>
+<h3 id="2020-10-03">2020/10/03</h3>
+<p> Add duplicate label check and include files from source file functions.</p>
+<p> Is able to import files from a project file, and files from imported files imported from project file.</p>
 <h3 id="2020-09-20">2020/09/20</h3>
 <p>Initial release:</p>
-<p>  The file editor is ready in emulator and is able to load, switch between opened files, files are created in a virtual FS.
-  The menu is not ready yet.
-  The same code is ported on an ATmega32u4 uC project to check the code size and static RAM usage in order to fit the code and optimize it specifically for ATmega core..</p>
+<p>  The file editor is ready in emulator and is able to load, switch between opened files, files are created in a virtual FS.</p>
+<p>  The menu is not ready yet.</p>
+<p>  The same code is ported on an ATmega32u4 uC project to check the code size and static RAM usage in order to fit the code and optimize it specifically for ATmega core.</p>
 </article></div><div style="background-color: #b4b2b2;width: 50px;height:50px;line-height: 50px;text-align: center;position: fixed;bottom: 10px;right: 10px;padding-top:5px;" onclick="document.documentElement.scrollTop = document.body.scrollTop =0;">
   <svg t="1533629773982" class="icon" style="" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1035" xmlns:xlink="http://www.w3.org/1999/xlink" width="40" height="40"><defs><style type="text/css">@font-face { font-family: uc-nexus-iconfont; src: url("chrome-extension://pogijhnlcfmcppgimcaccdkmbedjkmhi/res/font_9qmmi8b8jsxxbt9.woff") format("woff"), url("chrome-extension://pogijhnlcfmcppgimcaccdkmbedjkmhi/res/font_9qmmi8b8jsxxbt9.ttf") format("truetype"); }
   </style></defs><path d="M536.255427 195.182354c-7.804756-7.804756-17.966187-11.615549-28.311813-11.615549-9.43693 0-18.874883 3.449565-26.496467 10.163477-2.360767 1.452071-4.356214 3.267417-6.352685 5.262864L218.47792 455.611735c-15.607466 15.60542-15.607466 40.834011 0 56.43943 15.607466 15.607466 41.558511 15.607466 57.167001 0l193.46013-192.733583 0 600.526219c0 22.1423 17.787108 39.927361 39.927361 39.927361 22.140253 0 39.927361-17.785062 39.927361-39.927361L548.959773 319.317583 737.15704 508.422522c15.607466 15.607466 40.469714 15.607466 56.078203 0 15.607466-15.607466 15.425318-40.834011-0.182149-56.441477L536.255427 195.182354 536.255427 195.182354z" p-id="1036" fill="#333"></path><path d="M101.784174 143.097092l816.674071 0c22.140253 0 39.925315-17.785062 39.925315-39.927361 0-22.140253-17.784038-39.925315-39.925315-39.925315L101.784174 63.244416c-22.140253 0-39.927361 17.785062-39.927361 39.925315C61.856813 125.31203 79.643921 143.097092 101.784174 143.097092L101.784174 143.097092z" p-id="1037" fill="#333"></path></svg>

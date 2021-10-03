@@ -11,9 +11,24 @@ There is an emulator developed at the same time for faster development and debug
 
 The emulator is done with Qt community edition.
 
+## Description:
+
+Every project will be placed in it's own directory including one or multiple project files "\*.prj" that contain the relative paths of the dependency files that will be available for editing using cursor saving, the "\*.prj" file need to have a self include line in order to be available for editing this way the "\*.prj" file can have definition directives in order to be able to have multiple project configurations with the same source files.
+
+Only the imported files from project file will be available for editing from file editor with cursor saving, the rest will be edited thru a open file dialog choosing from all imported files from last compilation.
+
+### 2020/10/03
+
+ Add duplicate label check and include files from source file functions.
+
+ Is able to import files from a project file, and files from imported files imported from project file.
+
 ### 2020/09/20
+
 Initial release:
 
   The file editor is ready in emulator and is able to load, switch between opened files, files are created in a virtual FS.
+
   The menu is not ready yet.
-  The same code is ported on an ATmega32u4 uC project to check the code size and static RAM usage in order to fit the code and optimize it specifically for ATmega core..
+
+  The same code is ported on an ATmega32u4 uC project to check the code size and static RAM usage in order to fit the code and optimize it specifically for ATmega core.
