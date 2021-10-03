@@ -161,11 +161,11 @@ textEditor_Err_e addFile(textEditor_t *inst, char *fileName) {
     if(!fil)
         return TEXT_EDITOR_ERR_OUT_OF_MEMORY;
     ptr[fileCnt] = fil;
-    char *fName = (char *)calloc(1, /*strlen(fileName) + 1*/36);
+    char *fName = (char *)calloc(1, strlen(fileName) + 1);
     if(!fName)
         return TEXT_EDITOR_ERR_OUT_OF_MEMORY;
-    //strncpy(fName, fileName, 17);
-    memcpy(fName, fileName, 34);
+    strncpy(fName, fileName, 17);
+    //memcpy(fName, fileName, 34);
     fil->fileName = fName;
     return TEXT_EDITOR_ERR_OK;
 }

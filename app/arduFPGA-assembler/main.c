@@ -97,6 +97,8 @@ int main(void)
 
 			
 			textEditor_Idle(&fileEditor);
+
+			avrAsmCompiler_Compile((void **)fileEditor.files);
 		}
 	}
 }

@@ -5,6 +5,7 @@
 #include "def.h"
 #include "driver/spi.h"
 #include "textEditor.h"
+#include "avr-asm-compiler.h"
 
 #include "fat_fs/inc/ff.h"
 
@@ -20,9 +21,8 @@ char textBuff[256];
 FIL prjFil;
 FATFS fatFs0;
 extern FATFS *FatFs[];
-uint8_t workBuff[512];
+uint8_t workBuff[24576];
 uint8_t fsVirtualDisk0[256 * 1024];
-uint8_t fsVirtualDisk1[2048 * 1024];
 textEditor_t fileEditor;
 
 bool drv_connected(void*) {
@@ -68,95 +68,97 @@ MainWindow::MainWindow(QWidget *parent)
     FatFs[0]->drv_rw_func.drv_ioctl_func = drv_ioctl_func0;
     FatFs[0]->drv_rw_func.DriveStruct = (void *)-1;
     qDebug() << sizeof(fileEditor);
-    if(f_mkfs((TCHAR *)QString("0:").data(), FM_ANY, 512, workBuff, sizeof(workBuff)) != FR_OK) {
+    if(f_mkfs((TCHAR *)"0:", FM_ANY, 512, workBuff, sizeof(workBuff)) != FR_OK) {
         qDebug() << "ERROR: Formatting disk 0.";
     } else {
         qDebug() << "OK: Formatting disk 0.";
     }
-    if(f_chdrive((TCHAR *)QString("0:").data()) != FR_OK) {
+    /*if(f_chdrive((TCHAR *)"0:") != FR_OK) {
         qDebug() << "ERROR: Changing drive.";
     } else {
         qDebug() << "OK: Changing drive.";
-    }
-    if(f_mkdir((TCHAR *)QString("project").data()) != FR_OK) {
+    }*/
+    if(f_mkdir((TCHAR *)"/project") != FR_OK) {
         qDebug() << "ERROR: Creating project directory.";
     } else {
         qDebug() << "OK: Creating project directory.";
     }
-    if(f_chdir((TCHAR *)QString("project").data()) != FR_OK) {
+    if(f_chdir((TCHAR *)"project") != FR_OK) {
         qDebug() << "ERROR: Changing directory.";
     } else {
         qDebug() << "OK: Changing directory.";
     }
-    if(f_open(&prjFil, ((TCHAR *)QString("test.prj").data()), FA_OPEN_ALWAYS | FA_WRITE) != FR_OK) {
+    if(f_open(&prjFil, ((TCHAR *)"test.prj"), FA_OPEN_ALWAYS | FA_WRITE) != FR_OK) {
         qDebug() << "ERROR: Creating project file.";
     } else {
         qDebug() << "OK: Creating project file.";
     }
-    qDebug() << "WRITTEN: " << f_puts((TCHAR *)QString("main.asm\n").data(), &prjFil);
-    f_close(&prjFil);
     /***********************************************************/
-    if(f_open(&prjFil, (TCHAR *)QString("main.asm").data(), FA_OPEN_ALWAYS | FA_WRITE) != FR_OK) {
+    if(f_open(&prjFil, (TCHAR *)"main.asm", FA_OPEN_ALWAYS | FA_WRITE) != FR_OK) {
         qDebug() << "ERROR: Creating main.asm file.";
     } else {
         qDebug() << "OK: Creating main.asm file.";
     }
-    qDebug() << "WRITTEN: " << f_puts((TCHAR *)QString( "RESET:\n"
-                                                        "\tLDI R16, 0xFF\n"
-                                                        "\tOUT 0X22, R16\n"
-                                                        "LOOP:\n"
-                                                        "\tCLR R16\n"
-                                                        "\tMOV R17, R16\n"
-                                                        "\tRCALL DO_SOMETHING\n"
-                                                        "\tRJMP LOOP\n"
-                                                        "DO_SOMETHING:\n"
-                                                        "\tIN R18, 0X23\n"
-                                                        "\tANDI R18, 1<<3\n"
-                                                        "\tORI R18, 1<<4\n"
-                                                        "\tOUT 0X23, R18\n"
-                                                        "\tRET\n").data(), &prjFil);
+    qDebug() << "WRITTEN: " << f_puts((TCHAR *) "#INCLUDE \"draw.asm\"\n"
+                                                "#INCLUDE \"ssd1306.asm\"\n"
+                                                "#INCLUDE \"ssd1306.asm\"\n"
+                                                "\n"
+                                                "RESET:\n"
+                                                "\tLDI R16, 0xFF\n"
+                                                "\tOUT 0X22, R16\n"
+                                                "LOOP:\n"
+                                                "\tCLR R16\n"
+                                                "\tMOV R17, R16\n"
+                                                "\tRCALL DO_SOMETHING\n"
+                                                "\tRJMP LOOP\n"
+                                                "DO_SOMETHING:\n"
+                                                "\tIN R18, 0X23\n"
+                                                "\tANDI R18, 1<<3\n"
+                                                "\tORI R18, 1<<4\n"
+                                                "\tOUT 0X23, R18\n"
+                                                "\tRET\n", &prjFil);
     f_close(&prjFil);
 /***********************************************************/
-    if(f_open(&prjFil, ((TCHAR *)QString("draw.asm").data()), FA_OPEN_ALWAYS | FA_WRITE) != FR_OK) {
+    if(f_open(&prjFil, ((TCHAR *)"draw.asm"), FA_OPEN_ALWAYS | FA_WRITE) != FR_OK) {
         qDebug() << "ERROR: Creating draw.asm file.";
     } else {
         qDebug() << "OK: Creating draw.asm file.";
     }
-    qDebug() << "WRITTEN: " << f_puts((TCHAR *)QString( "DRAW_INIT:\n"
-                                                        "\tLDI R16, 0xFF\n"
-                                                        "\tOUT 0X22, R16\n"
-                                                        "DRAW_C:\n"
-                                                        "\tCLR R16\n"
-                                                        "\tMOV R17, R16\n"
-                                                        "\tRCALL DO_SOMETHING\n"
-                                                        "\tRJMP LOOP\n"
-                                                        "DRAW_S:\n"
-                                                        "\tIN R18, 0X23\n"
-                                                        "\tANDI R18, 1<<3\n"
-                                                        "\tORI R18, 1<<4\n"
-                                                        "\tOUT 0X23, R18\n"
-                                                        "\tRET\n").data(), &prjFil);
+    qDebug() << "WRITTEN: " << f_puts((TCHAR *) "RESET:\n"
+                                                "\tLDI R16, 0xFF\n"
+                                                "\tOUT 0X22, R16\n"
+                                                "DRAW_C:\n"
+                                                "\tCLR R16\n"
+                                                "\tMOV R17, R16\n"
+                                                "\tRCALL DO_SOMETHING\n"
+                                                "\tRJMP LOOP\n"
+                                                "DRAW_S:\n"
+                                                "\tIN R18, 0X23\n"
+                                                "\tANDI R18, 1<<3\n"
+                                                "\tORI R18, 1<<4\n"
+                                                "\tOUT 0X23, R18\n"
+                                                "\tRET\n", &prjFil);
     f_close(&prjFil);
 /***********************************************************/
-    if(f_open(&prjFil, ((TCHAR *)QString("ssd1306.asm").data()), FA_OPEN_ALWAYS | FA_WRITE) != FR_OK) {
+    if(f_open(&prjFil, ((TCHAR *)"ssd1306.asm"), FA_OPEN_ALWAYS | FA_WRITE) != FR_OK) {
         qDebug() << "ERROR: Creating ssd1306.asm file.";
     } else {
         qDebug() << "OK: Creating ssd1306.asm file.";
     }
-    qDebug() << "WRITTEN: " << f_puts((TCHAR *)QString( "SSD1306_INIT:\n"
-                                                        "\tLDI R16, 0xFF\n"
-                                                        "\tOUT 0X22, R16\n"
-                                                        "SSD1306_CLR:\n"
-                                                        "\tCLR R16\n"
-                                                        "\tMOV R17, R16\n"
-                                                        "\tRCALL DO_SOMETHING\n"
-                                                        "\tRJMP LOOP\n"
-                                                        "SSD1306_DRAW_PIXEL:\n"
-                                                        "\tIN R18, 0X23\n"
-                                                        "\tANDI R18, 1<<3\n"
-                                                        "\tORI R18, 1<<4\n"
-                                                        "\tOUT 0X23, R18\n"
-                                                        "\tRET\n").data(), &prjFil);
+    qDebug() << "WRITTEN: " << f_puts((TCHAR *) "SSD1306_INIT:\n"
+                                                "\tLDI R16, 0xFF\n"
+                                                "\tOUT 0X22, R16\n"
+                                                "SSD1306_CLR:\n"
+                                                "\tCLR R16\n"
+                                                "\tMOV R17, R16\n"
+                                                "\tRCALL DO_SOMETHING\n"
+                                                "\tRJMP LOOP\n"
+                                                "SSD1306_DRAW_PIXEL:\n"
+                                                "\tIN R18, 0X23\n"
+                                                "\tANDI R18, 1<<3\n"
+                                                "\tORI R18, 1<<4\n"
+                                                "\tOUT 0X23, R18\n"
+                                                "\tRET\n", &prjFil);
     f_close(&prjFil);
 /***********************************************************/
 
@@ -180,13 +182,31 @@ MainWindow::MainWindow(QWidget *parent)
     fileEditor.gfxString.maxLineLen = 0;
     fileEditor.textEditMode = false;
     textEditor_Init(&fileEditor);
-    addFile(&fileEditor, (char *)QString("main.asm").toStdWString().data());
-    addFile(&fileEditor, (char *)QString("draw.asm").toStdWString().data());
-    addFile(&fileEditor, (char *)QString("ssd1306.asm").toStdWString().data());
-    changeFile(&fileEditor, 0);
-    changeFile(&fileEditor, 1);
-    changeFile(&fileEditor, 2);
-    changeFile(&fileEditor, 0);
+    addFile(&fileEditor, (char *)"main.asm");
+    addFile(&fileEditor, (char *)"draw.asm");
+    addFile(&fileEditor, (char *)"ssd1306.asm");
+    if(changeFile(&fileEditor, 0)) {
+        qDebug() << "ERROR: Changing file 1.";
+    } else {
+        qDebug() << "OK: Changing file 1.";
+    }
+    if(changeFile(&fileEditor, 1)) {
+        qDebug() << "ERROR: Changing file 2.";
+    } else {
+        qDebug() << "OK: Changing file 2.";
+    }
+    if(changeFile(&fileEditor, 2)) {
+        qDebug() << "ERROR: Changing file 3.";
+    } else {
+        qDebug() << "OK: Changing file 3.";
+    }
+    if(changeFile(&fileEditor, 0)) {
+        qDebug() << "ERROR: Changing file 4.";
+    } else {
+        qDebug() << "OK: Changing file 4.";
+    }
+
+    avrAsmCompiler_Compile((void **)fileEditor.files);
 
 
     timerLoop.setInterval(10);

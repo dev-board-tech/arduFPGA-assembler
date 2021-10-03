@@ -99,7 +99,7 @@
 
 
 #define	_USE_LFN	1
-#define	_MAX_LFN	26
+#define	_MAX_LFN	32
 /* The _USE_LFN switches the support of long file name (LFN).
 /
 /   0: Disable support of LFN. _MAX_LFN has no effect.
@@ -134,7 +134,7 @@
 /  This option has no effect when _LFN_UNICODE == 0. */
 
 
-#define _FS_RPATH	2
+#define _FS_RPATH	1
 /* This option configures support of relative path.
 /
 /   0: Disable relative path and remove related functions.
@@ -150,9 +150,8 @@
 #define _VOLUMES	1
 /* Number of volumes (logical drives) to be used. */
 
-
-#define _STR_VOLUME_ID	1
-#define _VOLUME_STRS	"INTF","uSD1"
+#define _STR_VOLUME_ID	0
+#define _VOLUME_STRS	"uSD0:", "uSD1:"
 /* _STR_VOLUME_ID switches string support of volume ID.
 /  When _STR_VOLUME_ID is set to 1, also pre-defined strings can be used as drive
 /  number in the path name. _VOLUME_STRS defines the drive ID strings for each
