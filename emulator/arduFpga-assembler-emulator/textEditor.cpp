@@ -42,6 +42,15 @@ void textEditorDeInit(textEditor_t *inst) {
     }
 }
 
+static int filesize(textEditor_t *inst) {
+    for(int cnt = 0; cnt < inst->maxFileLen; cnt++) {
+        if(((uint8_t *)inst->filePtr)[cnt] == 0) {
+            return cnt;
+        }
+    }
+    return inst->maxFileLen - 1;
+}
+
 static bool write(textEditor_t *inst, textEditorPtr addr, uint8_t data) {
     return ((uint8_t *)inst->filePtr)[addr] = data;
 }
@@ -65,6 +74,7 @@ static void resetCursorState(textEditor_t *inst) {
 }
 
 static textEditorPtr getNextLine(textEditor_t *inst, textEditorPtr cursorPos);
+static textEditorPtr getStartOfCurrentLine(textEditor_t *inst, textEditorPtr cursorPos);
 static textEditorPtr getPreviousLine(textEditor_t *inst, textEditorPtr cursorPos);
 static void moveString(textEditor_t *inst, textEditorPtr from, textEditorPtr to);
 static int toa(int value,char *ptr);
@@ -125,6 +135,24 @@ static void paintWindow(textEditor_t *inst) {
             drawStringWindowed4x6(&inst->gfxString, &bTmp, mpS, 0, cnt, -1, false);
             t++;
         }
+        char *mpSp = mpS;
+        //sprintf(mpS, "%05d|", t);
+        t = filesize(inst);
+        if(t < 100000)
+            *mpSp++ = '0';
+        if(t < 10000)
+            *mpSp++ = '0';
+        if(t < 1000)
+            *mpSp++ = '0';
+        if(t < 100)
+            *mpSp++ = '0';
+        if(t < 10)
+            *mpSp++ = '0';
+        util_utoa(t, mpSp);
+        mpS[6] = '\0';
+        bTmp = inst->box;
+        ssd1306_draw_rectangle(inst->gfxString.spi, &bTmp, inst->gfxString.vram, DISPLAY_FUNC_GET_X() - (getCharWidth4x6() * 6) - 1, DISPLAY_FUNC_GET_Y()  - getCharHeight4x6() - 1, (getCharWidth4x6() * 5) + 1, getCharHeight4x6() + 1, true, inst->gfxString.foreColor);
+        drawStringWindowed4x6(&inst->gfxString, &bTmp, mpS, DISPLAY_FUNC_GET_X() - (getCharWidth4x6() * 6), DISPLAY_FUNC_GET_Y()  - getCharHeight4x6(), -1, false);
     }
 
     DISPLAY_REFRESH(NULL, inst->gfxString.vram);
@@ -276,24 +304,47 @@ static void moveString(textEditor_t *inst, textEditorPtr from, textEditorPtr to)
             writeChunk(inst, dp, l, chunk);
             sp += l; dp += l;
         } while(1);
+        memset(chunk, 0, sizeof(chunk));
+        dp ++;
+        do {
+            int len = sp - dp;
+            if(len <= 0)
+                break;
+            if(len > (int)sizeof(chunk))
+                len = sizeof(chunk);
+            writeChunk(inst, dp, len, chunk);
+            dp += len;
+        } while(1);
         inst->files[inst->activeFile]->edited = true;
     }
 }
+
+
 void textEditor_edit(textEditor_t *inst, uint8_t c) {
     if(!inst->busy) {
         inst->busy = true;
+        textEditorPtr prevLine;
         switch(c) {
             case 0x08://Backspace 0x08
                 if(inst->cursorPos == 0)
                     return;
                 inst->cursorPos -= 1;
-                moveString(inst, inst->cursorPos + 1, inst->cursorPos);
-                resetCursorState(inst);
-                break;
             case 0x07://Delete 0x07
                 moveString(inst, inst->cursorPos + 1, inst->cursorPos);
                 resetCursorState(inst);
                 break;
+            case '\n':// Enter
+				prevLine = getStartOfCurrentLine(inst, inst->cursorPos);
+                if((read(inst, prevLine) == '\t' && isNewLine(inst, inst->cursorPos)) || read(inst, inst->cursorPos - 1) == '\t' || read(inst, inst->cursorPos) == '\t') {
+                    moveString(inst, inst->cursorPos, inst->cursorPos + 1);
+                    write(inst, inst->cursorPos, '\n');
+                    if(read(inst, inst->cursorPos + 1) == '\t') {
+                        inst->cursorPos+=2;
+                        break;
+                    }
+                    inst->cursorPos++;
+                    c = '\t';
+                }
             default://The rest
                 moveString(inst, inst->cursorPos, inst->cursorPos + 1);
                 write(inst, inst->cursorPos, c);
@@ -310,6 +361,15 @@ static textEditorPtr getNextLine(textEditor_t *inst, textEditorPtr cursorPos) {
             return cnt + 1;
     }
     for (textEditorPtr cnt = cursorPos; cnt > 0; cnt--) {
+        if(isNewLine(inst, cnt))
+            return cnt + 1;
+    }
+    return 0;
+}
+
+static textEditorPtr getStartOfCurrentLine(textEditor_t *inst, textEditorPtr cursorPos) {
+    textEditorPtr cnt;
+    for (cnt = cursorPos - 1; cnt > 0; cnt--) {
         if(isNewLine(inst, cnt))
             return cnt + 1;
     }
@@ -409,8 +469,12 @@ static int _drawStringWindowed4x6(textEditor_t *inst, box_t *box, textEditorPtr 
             if((cursorState) || (cursorState && C == 0))
                 C = (uint8_t)(96+32);
         }
-        if(!inst->gfxString.transparent)
+        if(!inst->gfxString.transparent) {
+            if(inst->gfxString.foreColor != inst->gfxString.inkColor) {
+                ssd1306_draw_rectangle(inst->gfxString.spi, box, inst->gfxString.vram, cX, cY, getCharWidth4x6(), getCharHeight4x6(), true, inst->gfxString.foreColor);
+            }
             drawChar4x6(inst->gfxString.spi, box, inst->gfxString.vram, cX, cY, C, inst->gfxString.inkColor);
+        }
         if (c == 0)
             return cCnt - 1;
         switch (c) {

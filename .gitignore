@@ -335,3 +335,5 @@ ASALocalRun/
 
 
 emulator/build-*/
+
+.DS_Store

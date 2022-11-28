@@ -82,12 +82,12 @@ DRESULT disk_write (
 DRESULT disk_ioctl (
 	BYTE drv,		/* Physical drive nmuber (0..) */
 	BYTE ctrl,		/* Control code */
-	void *buff		/* Buffer to send/receive control data */
+    DWORD *buff		/* Buffer to send/receive control data */
 )
 {
     unsigned int response = FR_OK;
 	if(!FatFs[drv]->drv_rw_func.DriveStruct || !FatFs[drv]->drv_rw_func.drv_ioctl_func)
 		return RES_PARERR;
-    return FatFs[drv]->drv_rw_func.drv_ioctl_func(FatFs[drv]->drv_rw_func.DriveStruct, ctrl, (unsigned int *)buff);
+    return FatFs[drv]->drv_rw_func.drv_ioctl_func(FatFs[drv]->drv_rw_func.DriveStruct, ctrl, buff);
 }
 

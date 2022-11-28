@@ -440,7 +440,7 @@ static void dopr (FIL* fp, char *buffer, size_t maxlen, const char *format, va_l
 	break;
       case 'p':
     strvalue = va_arg (args, char *);
-	fmtint (fp, buffer, &currlen, maxlen, (unsigned int)strvalue, 16, min, max, flags);
+    fmtint (fp, buffer, &currlen, maxlen, (unsigned int)(uintptr_t)strvalue, 16, min, max, flags);
 	break;
       case 'n':
 	if (cflags == DP_C_SHORT)

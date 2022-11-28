@@ -10,7 +10,7 @@
 
 #include "fat_fs/inc/ff.h"
 
-typedef uint16_t textEditorPtr;
+typedef uintptr_t textEditorPtr;
 
 typedef struct textEditorFile_s{
     textEditorPtr cursorPos;
@@ -46,12 +46,12 @@ typedef struct textEditor_s{
         MENU_OPEN_FILE,
     };
     textEditorFile_t **files;
-    uint32_t filePtr;
+    uintptr_t filePtr;
     textEditorPtr maxFileLen;
     textEditorPtr cursorPos;
     int16_t winX;
     textEditorPtr winY;
-    timer_t timer;
+	_timer_t timer;
     gfxString_t gfxString;
     box_t box;
     uint8_t activeFile;

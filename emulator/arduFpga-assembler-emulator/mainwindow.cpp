@@ -16,13 +16,13 @@ QGraphicsScene *scene;
 extern uint8_t *vram;
 box_t box = {0, 128, 0, 64};// For ssd1306 128x64 pixels.
 spi_t spi;
-char textBuff[256];
+char textBuff[32768];
 
 FIL prjFil;
 FATFS fatFs0;
 extern FATFS *FatFs[];
-uint8_t workBuff[24576];
-uint8_t fsVirtualDisk0[256 * 1024];
+uint8_t workBuff[512];
+uint8_t fsVirtualDisk0[512 * 1024];
 textEditor_t fileEditor;
 
 bool drv_connected(void*) {
@@ -36,7 +36,7 @@ DRESULT	drv_w_func0(void *, void* _Buffer, unsigned long _block, unsigned int nb
     memcpy(fsVirtualDisk0 + (_block * 512), _Buffer, nblks * 512);
     return RES_OK;
 }
-DRESULT	drv_ioctl_func0(void *, unsigned int  command,  unsigned int *buffer) {
+DRESULT	drv_ioctl_func0(void *, unsigned int  command,  DWORD *buffer) {
     switch(command) {
         case GET_SECTOR_COUNT:
             *buffer = sizeof(fsVirtualDisk0) / 512;
@@ -70,6 +70,7 @@ MainWindow::MainWindow(QWidget *parent)
     qDebug() << sizeof(fileEditor);
     if(f_mkfs((TCHAR *)"0:", FM_ANY, 512, workBuff, sizeof(workBuff)) != FR_OK) {
         qDebug() << "ERROR: Formatting disk 0.";
+        exit(1);
     } else {
         qDebug() << "OK: Formatting disk 0.";
     }
@@ -80,27 +81,30 @@ MainWindow::MainWindow(QWidget *parent)
     }*/
     if(f_mkdir((TCHAR *)"/project") != FR_OK) {
         qDebug() << "ERROR: Creating project directory.";
+        exit(1);
     } else {
         qDebug() << "OK: Creating project directory.";
     }
     if(f_chdir((TCHAR *)"project") != FR_OK) {
         qDebug() << "ERROR: Changing directory.";
+        exit(1);
     } else {
         qDebug() << "OK: Changing directory.";
     }
     if(f_open(&prjFil, ((TCHAR *)"test.prj"), FA_OPEN_ALWAYS | FA_WRITE) != FR_OK) {
         qDebug() << "ERROR: Creating project file.";
+        exit(1);
     } else {
         qDebug() << "OK: Creating project file.";
     }
     /***********************************************************/
     if(f_open(&prjFil, (TCHAR *)"main.asm", FA_OPEN_ALWAYS | FA_WRITE) != FR_OK) {
         qDebug() << "ERROR: Creating main.asm file.";
+        exit(1);
     } else {
         qDebug() << "OK: Creating main.asm file.";
     }
     qDebug() << "WRITTEN: " << f_puts((TCHAR *) "#INCLUDE \"draw.asm\"\n"
-                                                "#INCLUDE \"ssd1306.asm\"\n"
                                                 "#INCLUDE \"ssd1306.asm\"\n"
                                                 "\n"
                                                 "RESET:\n"
@@ -121,10 +125,12 @@ MainWindow::MainWindow(QWidget *parent)
 /***********************************************************/
     if(f_open(&prjFil, ((TCHAR *)"draw.asm"), FA_OPEN_ALWAYS | FA_WRITE) != FR_OK) {
         qDebug() << "ERROR: Creating draw.asm file.";
+        exit(1);
     } else {
         qDebug() << "OK: Creating draw.asm file.";
     }
-    qDebug() << "WRITTEN: " << f_puts((TCHAR *) "RESET:\n"
+    qDebug() << "WRITTEN: " << f_puts((TCHAR *) "DRAW:\n"
+                                                "\n"
                                                 "\tLDI R16, 0xFF\n"
                                                 "\tOUT 0X22, R16\n"
                                                 "DRAW_C:\n"
@@ -142,6 +148,7 @@ MainWindow::MainWindow(QWidget *parent)
 /***********************************************************/
     if(f_open(&prjFil, ((TCHAR *)"ssd1306.asm"), FA_OPEN_ALWAYS | FA_WRITE) != FR_OK) {
         qDebug() << "ERROR: Creating ssd1306.asm file.";
+        exit(1);
     } else {
         qDebug() << "OK: Creating ssd1306.asm file.";
     }
@@ -169,7 +176,7 @@ MainWindow::MainWindow(QWidget *parent)
     scene = new QGraphicsScene();
     ui->graphicsView_Display->setScene(scene);
 
-    fileEditor.filePtr = (uint32_t)textBuff;
+    fileEditor.filePtr = (uintptr_t)textBuff;
     fileEditor.maxFileLen = sizeof(textBuff);
     fileEditor.box = box;
     fileEditor.gfxString.foreColor = false;
@@ -187,26 +194,30 @@ MainWindow::MainWindow(QWidget *parent)
     addFile(&fileEditor, (char *)"ssd1306.asm");
     if(changeFile(&fileEditor, 0)) {
         qDebug() << "ERROR: Changing file 1.";
+        exit(1);
     } else {
         qDebug() << "OK: Changing file 1.";
     }
-    if(changeFile(&fileEditor, 1)) {
+	/*if(changeFile(&fileEditor, 1)) {
         qDebug() << "ERROR: Changing file 2.";
+        exit(1);
     } else {
         qDebug() << "OK: Changing file 2.";
     }
     if(changeFile(&fileEditor, 2)) {
         qDebug() << "ERROR: Changing file 3.";
+        exit(1);
     } else {
         qDebug() << "OK: Changing file 3.";
     }
     if(changeFile(&fileEditor, 0)) {
         qDebug() << "ERROR: Changing file 4.";
+        exit(1);
     } else {
         qDebug() << "OK: Changing file 4.";
-    }
+	}*/
 
-    avrAsmCompiler_Compile((void **)fileEditor.files);
+    //avrAsmCompiler_Compile((void **)fileEditor.files);
 
 
     timerLoop.setInterval(10);
@@ -236,7 +247,7 @@ bool MainWindow::eventFilter(QObject* , QEvent* event) {
             textEditor_goRight(&fileEditor);
         } else if(key->key() == Qt::Key_Enter || key->key() == Qt::Key_Return) {
             textEditor_edit(&fileEditor, '\n');
-        } else if(key->key() >= Qt::Key_Space && key->key() < Qt::Key_AsciiTilde) {
+        } else if(key->key() >= Qt::Key_Space && key->key() <= Qt::Key_AsciiTilde) {
             textEditor_edit(&fileEditor, (uint8_t)key->key());
         } else if(key->key() == Qt::Key_Backspace) {
             textEditor_edit(&fileEditor, 0x08);

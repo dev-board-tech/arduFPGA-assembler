@@ -361,8 +361,12 @@ int drawStringWindowed4x6(gfxString_t *inst, box_t *box, char *string, int16_t x
             if((cursorState) || (cursorState && C == 0))
                 C = (uint8_t)(96+32);
         }
-        if(!inst->transparent)
+        if(!inst->transparent) {
+            if(inst->foreColor != inst->inkColor) {
+                ssd1306_draw_rectangle(inst->spi, box, inst->vram, cX, cY, getCharWidth4x6(), getCharHeight4x6(), true, inst->foreColor);
+            }
             drawChar4x6(inst->spi, box, inst->vram, cX, cY, C, inst->inkColor);
+        }
         if (c == 0) {
             return cCnt - 1;
         }

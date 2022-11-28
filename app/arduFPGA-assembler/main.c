@@ -44,16 +44,17 @@ void service() {
 	timer_service();
 }
 
-int main(void)
-{
-	void (*vect_set_service)(uint16_t) = (void *)BOOT_VECTOR_SET_SERVICE_VECT;
-	vect_set_service((uint16_t)service);
+int main(void) {
 
 	spi.spcr = &SPCR;
 	spi.spsr = &SPSR;
 	spi.spdr = &SPDR;
 	spi_init(&spi);
 	DISPLAY_FUNC_INIT(&spi, vram);
+	void (*vect_set_service)(uint16_t) = (void *)BOOT_VECTOR_SET_SERVICE_VECT;
+	vect_set_service((uint16_t)&service);
+	
+	asm("sei");
 	uSD.unitNr = 0;
 	uSD.fatFs = &fatFs;
 	uSD.spi_inst = &spi;
@@ -88,17 +89,21 @@ int main(void)
 			mmc_sd_spi_idle(&uSD);
 			if(uSD.fs_mounted != usd_state) {
 				usd_state = uSD.fs_mounted;
+				if(uSD.fs_mounted) {
+					textEditor_edit(&fileEditor, 'c');
+					textEditor_Idle(&fileEditor);
+					textEditor_edit(&fileEditor, '\n');
+					textEditor_Idle(&fileEditor);
+				}
 			}
-			textEditor_edit(&fileEditor, 'c');
-			textEditor_goLeft(&fileEditor);
-			textEditor_goRight(&fileEditor);
-			textEditor_goUp(&fileEditor);
-			textEditor_goDown(&fileEditor);
+			//textEditor_goLeft(&fileEditor);
+			//textEditor_goRight(&fileEditor);
+			//textEditor_goUp(&fileEditor);
+			//textEditor_goDown(&fileEditor);
 
 			
-			textEditor_Idle(&fileEditor);
 
-			avrAsmCompiler_Compile((void **)fileEditor.files);
+			//avrAsmCompiler_Compile((void **)fileEditor.files);
 		}
 	}
 }
